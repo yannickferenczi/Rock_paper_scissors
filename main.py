@@ -4,6 +4,36 @@ from time import sleep
 
 CHOICES_LIST = ["pierre", "papier", "ciseaux"]
 
+PLAYER_POSSIBLE_COMBINATIONS = {
+    ("pierre", "pierre"): (
+        0, "Égalité ! Recommencez...", 0,
+    ),
+    ("pierre", "papier"): (
+        0, "Vous avez perdu! Le papier enveloppe la pierre.", 1,
+    ),
+    ("pierre", "ciseaux"): (
+        1, "Vous avez gagné! La pierre brise les ciseaux.", 0,
+    ),
+    ("papier", "pierre"): (
+        1, "Vous avez gagné! Le papier enveloppe la pierre.", 0,
+    ),
+    ("papier", "papier"): (
+        0, "Égalité ! Recommencez...", 0,
+    ),
+    ("papier", "ciseaux"): (
+        0, "Vous avez perdu! Les ciseaux coupent le papier.", 1,
+    ),
+    ("ciseaux", "pierre"): (
+        0, "Vous avez perdu! La pierre brise les ciseaux.", 1,
+    ),
+    ("ciseaux", "papier"): (
+        1, "Vous avez gagné! Les ciseaux coupent le papier.", 0,
+    ),
+    ("ciseaux", "ciseaux"): (
+        0, "Égalité ! Recommencez...", 0,
+    ),
+}
+
 def typing_print(text):
     """Display the text with a typing effect."""
     for character in text:
@@ -24,20 +54,6 @@ def choice_is_valid(player_choice):
     """Return True is player_choice in CHOICES_LIST"""
     return player_choice in CHOICES_LIST
 
-def play_again():
-    """Start a new game or shut down the program"""
-    print()
-    try_again = typing_input("Nouvelle partie? (y/n) ")
-    print()
-    if try_again == "y":
-        pass
-    elif try_again == "n":
-        sys.exit(0)
-    else:
-        typing_print("Ta décision n'est pas claire!")
-        return play_again()
-
-
 def computer_plays():
     """Defines the hand of the computer"""
     return choice(CHOICES_LIST)
@@ -48,8 +64,7 @@ def player_plays():
     
     The function keeps asking the player until it gets a valid answer.
     """
-    print()
-    player_choice = typing_input("Choisi ton arme: " )
+    player_choice = typing_input("\nChoisi ton arme: " )
     if choice_is_valid(player_choice):
         return player_choice
     else:
@@ -65,19 +80,6 @@ ciseaux
 """
         )
         return player_plays()
-
-def there_is_a_winner(computer_move, player_move):
-    return computer_move != player_move
-
-def player_wins(computer_move, player_move):
-    if (
-        (player_move == "papier" and computer_move == "pierre")
-        or
-        (player_move == "ciseaux" and computer_move == "papier")
-        or
-        (player_move == "pierre" and computer_move == "ciseaux")
-    ):
-        return True
 
 
 if __name__ == "__main__":
@@ -103,30 +105,24 @@ ou 'ciseaux'.
     while True:
         computer_move = computer_plays()
         player_move = player_plays()
-        print()
-        if there_is_a_winner(computer_move, player_move):
-            if player_wins(computer_move, player_move):
-                player_points += 1
-                typing_print(
-"Félicitations, tu as vaincu l'ordinateur! " +
-f"Il avait choisi '{computer_move}'."
-                )
-            else:
-                computer_points += 1
-                typing_print(
-"Dommage, l'ordinateur a eu plus de chance. " +
-f"Il avait choisi '{computer_move}'."
-                )
-        else:
-            typing_print("Egalité! Recommencez...")
-            print()
+        game = (player_move, computer_move)
+        computer_points += PLAYER_POSSIBLE_COMBINATIONS[game][2]
+        player_points += PLAYER_POSSIBLE_COMBINATIONS[game][0]
+        typing_print("\n" + PLAYER_POSSIBLE_COMBINATIONS[game][1] + "\n")
+        if PLAYER_POSSIBLE_COMBINATIONS[game][1] == "Égalité ! Recommencez...":
             continue
-
-        typing_print(
+        else:
+            typing_print(
 f"""
-Tu as {player_points} point{'s' if player_points > 1 else ""}.
-L'ordinateur a {computer_points} point{'s' if computer_points > 1 else ""}.
+\nTu as {player_points} point{'s' if player_points > 1 else ""}.
+L'ordinateur a {computer_points} point{'s' if computer_points > 1 else ""}.\n
 """
-        )
-
-        play_again()
+            )
+            while True:
+                try_again = typing_input("\nNouvelle partie? (y/n) \n")
+                if try_again == "y":
+                    break
+                elif try_again == "n":
+                    sys.exit(0)
+                else:
+                    typing_print("\nTa décision n'est pas claire!\n")
